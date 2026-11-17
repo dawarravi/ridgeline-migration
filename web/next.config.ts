@@ -11,6 +11,11 @@ const LEGACY_ORIGIN = process.env.LEGACY_ORIGIN
 if (!LEGACY_ORIGIN) throw new Error('LEGACY_ORIGIN must be set (e.g. https://ridgeline-legacy.up.railway.app)')
 
 const nextConfig: NextConfig = {
+  // Cache Components: nothing is cached unless we opt in with 'use cache'.
+  // Pages become a static shell (served by the CDN) with dynamic holes that
+  // stream in. See app/product/[slug]/page.tsx.
+  cacheComponents: true,
+  partialPrefetching: true,
   async rewrites() {
     return {
       beforeFiles: [],
