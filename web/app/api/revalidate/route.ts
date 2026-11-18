@@ -13,7 +13,16 @@ export async function POST(req: Request) {
   const body = await req.text()
   if (body.length > 1024) return Response.json({ error: 'too large' }, { status: 413 })
 
-  const expected = createHmac('sha256', secret).update(body).digest()
+  // Replay protection: the signature covers the timestamp, and we only
+  // accept requests signed in the last 5 minutes. (A replay inside that
+  // window only re-purges the same product, which is harmless.)
+  const timestamp = req.headers.get('x-ridgeline-timestamp') ?? ''
+  const age = Math.abs(Date.now() / 1000 - Number(timestamp))
+  if (!/^\d{10}$/.test(timestamp) || !(age <= 300)) {
+    return Response.json({ error: 'stale or missing timestamp' }, { status: 401 })
+  }
+
+  const expected = createHmac('sha256', secret).update(`${timestamp}.${body}`).digest()
   const given = Buffer.from(req.headers.get('x-ridgeline-signature') ?? '', 'hex')
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return Response.json({ error: 'bad signature' }, { status: 401 })

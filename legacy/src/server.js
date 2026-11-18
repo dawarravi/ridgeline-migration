@@ -110,11 +110,18 @@ const requireAdmin = (req, res, next) => {
 async function notifyVercel(slug) {
   if (!WEBHOOK_URL || !WEBHOOK_SECRET) return 'webhook not configured'
   const body = JSON.stringify({ type: 'product.updated', slug })
-  const signature = createHmac('sha256', WEBHOOK_SECRET).update(body).digest('hex')
+  // Sign the timestamp together with the body, so a captured request can't
+  // be replayed later: the receiver rejects anything older than 5 minutes.
+  const timestamp = String(Math.floor(Date.now() / 1000))
+  const signature = createHmac('sha256', WEBHOOK_SECRET).update(`${timestamp}.${body}`).digest('hex')
   try {
     const r = await fetch(WEBHOOK_URL, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-ridgeline-signature': signature },
+      headers: {
+        'content-type': 'application/json',
+        'x-ridgeline-timestamp': timestamp,
+        'x-ridgeline-signature': signature,
+      },
       body,
       signal: AbortSignal.timeout(5000),
     })
