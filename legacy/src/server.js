@@ -24,6 +24,14 @@ const safeEqual = (a, b) => {
 // ---------------------------------------------------------------------------
 
 app.get('/', async (_req, res) => {
+  // The home page is the same for every shopper, so let Vercel's CDN keep a
+  // copy for 60s (browsers still revalidate every time). This speeds up a
+  // page we haven't migrated yet, with no code on the Vercel side.
+  // Trade-off: a price change can take up to 60s to show here.
+  // Never do this for /cart or /checkout: they depend on the shopper's cookie.
+  res.setHeader('CDN-Cache-Control', 'max-age=60')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Vercel-Cache-Tag', 'catalog')
   res.send(homePage(await listProducts()))
 })
 

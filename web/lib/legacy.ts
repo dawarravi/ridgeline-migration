@@ -25,12 +25,12 @@ function config() {
   return { origin, token }
 }
 
-async function legacyGet<T>(path: string): Promise<T | null> {
+async function legacyGet<T>(path: string, timeoutMs = 5000): Promise<T | null> {
   const { origin, token } = config()
   const res = await fetch(new URL(path, origin), {
     headers: { authorization: `Bearer ${token}` },
     // Fail fast instead of holding a function open if legacy is down.
-    signal: AbortSignal.timeout(5000),
+    signal: AbortSignal.timeout(timeoutMs),
   })
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`legacy ${path} -> ${res.status}`)
@@ -39,7 +39,10 @@ async function legacyGet<T>(path: string): Promise<T | null> {
 
 const SLUG = /^[a-z0-9-]{1,64}$/
 
-export const listProducts = () => legacyGet<Product[]>('/api/products').then((p) => p ?? [])
+// Shoppers never wait on this call (it runs at build time), so it gets a
+// long timeout: the POC's legacy host sleeps when idle and takes up to
+// ~50s to wake. Without this, a build after a quiet hour would fail.
+export const listProducts = () => legacyGet<Product[]>('/api/products', 90_000).then((p) => p ?? [])
 
 export const getProduct = (slug: string) =>
   SLUG.test(slug) ? legacyGet<Product>(`/api/products/${slug}`) : Promise.resolve(null)
