@@ -2,7 +2,9 @@
   "name": "ridgeline-web",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@vercel/global-config": "1.5.1",
+    "flags": "4.4.0",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"
