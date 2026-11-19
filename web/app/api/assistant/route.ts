@@ -25,7 +25,12 @@ import { rateLimit } from '@/lib/rate-limit'
 
 export const maxDuration = 30
 
-const PRIMARY_MODEL = 'google/gemini-2.5-flash-lite'
+// Was gemini-2.5-flash-lite. Three-runs-per-case evals on flash-lite scored
+// 37/39 then 34/39: it sometimes listed a sold-out size as available even
+// though checkStock said otherwise, and went silent after multi-tool turns.
+// Prompt changes didn't move the pass rate, so this tests a stronger model
+// from the same provider. AI Gateway logs the cost difference per answer.
+const PRIMARY_MODEL = 'google/gemini-2.5-flash'
 const FALLBACK_MODELS = ['openai/gpt-4.1-mini']
 
 const SLUG = z.string().regex(/^[a-z0-9-]{1,64}$/)
