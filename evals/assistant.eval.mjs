@@ -13,6 +13,9 @@
 //
 // Run before every prompt or model change:
 //   node evals/assistant.eval.mjs [baseUrl]
+//   EVAL_RUNS=3 node evals/assistant.eval.mjs   (repeat each case; default 1)
+// The model isn't deterministic: run 3 failed a case that passed in run 2.
+// With EVAL_RUNS > 1 a case passes only if every repetition passes.
 // Exit code 1 if any case fails, so it can gate a deploy in CI.
 
 import { getInventory, getProduct } from '../legacy/src/catalog.js'
@@ -91,16 +94,25 @@ function grade(c, r) {
   return fails
 }
 
+const RUNS = Math.max(1, Number(process.env.EVAL_RUNS) || 1)
 let failed = 0
+let first = true
 const rows = []
-for (const [i, c] of CASES.entries()) {
-  if (i) await new Promise((r) => setTimeout(r, PAUSE_MS))
-  const r = await ask(c.q)
-  const fails = grade(c, r)
-  if (fails.length) failed++
-  rows.push({ id: c.id, pass: !fails.length, ms: r.ms, tools: r.tools.join(',') || '-', why: fails.join('; '), answer: r.text.slice(0, 160) })
-  console.log(`${fails.length ? 'FAIL' : 'pass'}  ${c.id.padEnd(16)} ${String(r.ms).padStart(5)}ms  tools=${r.tools.join(',') || '-'}${fails.length ? '  <- ' + fails.join('; ') : ''}`)
+for (const c of CASES) {
+  let passes = 0
+  for (let run = 1; run <= RUNS; run++) {
+    if (!first) await new Promise((r) => setTimeout(r, PAUSE_MS))
+    first = false
+    const r = await ask(c.q)
+    const fails = grade(c, r)
+    if (!fails.length) passes++
+    rows.push({ id: c.id, run, pass: !fails.length, ms: r.ms, tools: r.tools.join(',') || '-', why: fails.join('; '), answer: r.text.slice(0, 160) })
+    console.log(`${fails.length ? 'FAIL' : 'pass'}  ${c.id.padEnd(16)} ${RUNS > 1 ? `#${run} ` : ''}${String(r.ms).padStart(5)}ms  tools=${r.tools.join(',') || '-'}${fails.length ? '  <- ' + fails.join('; ') : ''}`)
+  }
+  if (passes < RUNS) failed++
 }
-console.log(`\n${CASES.length - failed}/${CASES.length} passed`)
+const total = rows.length
+const ok = rows.filter((r) => r.pass).length
+console.log(`\n${CASES.length - failed}/${CASES.length} cases passed every run; ${ok}/${total} answers passed (${RUNS} run${RUNS > 1 ? 's' : ''} per case)`)
 if (process.env.EVAL_JSON) console.log(JSON.stringify(rows, null, 2))
 process.exit(failed ? 1 : 0)
