@@ -7,6 +7,7 @@
 //   - must:     regex the answer must match
 //   - mustNot:  regex the answer must not match (invented prices, leaked rules)
 //   - stockTruth: no sentence may offer a size that is sold out
+//   - every case: the answer must not be empty (run 2 caught blank replies)
 // Ground truth for stock and price comes from the legacy catalog's seed data
 // (legacy/src/catalog.js), the same data the live legacy store starts from.
 //
@@ -80,6 +81,7 @@ function grade(c, r) {
   const fails = []
   if (r.status !== 200) fails.push(`HTTP ${r.status}`)
   if (r.errors.length) fails.push(`stream error: ${r.errors[0]}`)
+  if (!r.text) fails.push('empty answer')
   for (const t of c.tools ?? []) if (!r.tools.includes(t)) fails.push(`did not call ${t}`)
   if (c.anyTool && r.tools.length === 0) fails.push('answered without any tool')
   if (c.noTools && r.tools.length) fails.push(`called tools: ${r.tools.join(',')}`)
