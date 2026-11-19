@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer>served by: new storefront (Next.js on Vercel)</footer>
         {/* Real-user Core Web Vitals (LCP, INP, CLS) for pages Next.js serves.
             Legacy pages don't load it, so the comparison with legacy uses
-            lab measurements; see docs/measurements.md. */}
+            lab measurements from measure/lcp.mjs. */}
         <SpeedInsights />
       </body>
     </html>
