@@ -106,7 +106,7 @@ for (const c of CASES) {
     const r = await ask(c.q)
     const fails = grade(c, r)
     if (!fails.length) passes++
-    rows.push({ id: c.id, run, pass: !fails.length, ms: r.ms, tools: r.tools.join(',') || '-', why: fails.join('; '), answer: r.text.slice(0, 160) })
+    rows.push({ id: c.id, run, pass: !fails.length, ms: r.ms, tools: r.tools.join(',') || '-', why: fails.join('; '), answer: fails.length ? r.text : r.text.slice(0, 160) }) // full text on failure, to tell model errors from grader errors
     console.log(`${fails.length ? 'FAIL' : 'pass'}  ${c.id.padEnd(16)} ${RUNS > 1 ? `#${run} ` : ''}${String(r.ms).padStart(5)}ms  tools=${r.tools.join(',') || '-'}${fails.length ? '  <- ' + fails.join('; ') : ''}`)
   }
   if (passes < RUNS) failed++
