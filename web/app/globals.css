@@ -10,3 +10,10 @@ select{padding:8px}
 .price{font-size:22px}
 .muted{color:#555}
 .debug{margin-top:32px;font:12px monospace;color:#888}
+.assistant{margin-top:40px;padding:16px;border:1px solid #ddd;grid-column:1/-1}
+.assistant h2{margin:0 0 8px;font-size:18px}
+.chat{max-height:360px;overflow-y:auto}
+.msg p{margin:6px 0}
+.msg.me{text-align:right;color:#1f6b45}
+.msg .tool{font:12px monospace;color:#888}
+.assistant input{padding:9px;width:min(70%,480px);border:1px solid #bbb}

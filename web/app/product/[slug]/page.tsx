@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { cacheLife, cacheTag } from 'next/cache'
 import { getProduct, getInventory, listProducts, money } from '@/lib/legacy'
 import { ProductArt } from '@/components/ProductArt'
+import { Assistant } from '@/components/Assistant'
 
 // The first migrated route: the product detail page (PDP).
 //
@@ -54,6 +55,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </Suspense>
         <p className="debug">product data cached at {cachedAt}</p>
       </div>
+      <Assistant slug={slug} name={product.name} />
     </div>
   )
 }
