@@ -90,7 +90,12 @@ Rules:
     onEnd: (event) => {
       // Cost and latency per conversation turn, for the POC's cost estimate.
       // No message text is logged.
-      const gw = event.providerMetadata?.gateway as { cost?: string | number } | undefined
+      // Sum every step: a tool-using answer is two or more model calls, and
+      // the end event's own metadata only covers the last one.
+      const costUsd = event.steps.reduce((sum, s) => {
+        const gw = s.providerMetadata?.gateway as { cost?: string | number } | undefined
+        return sum + Number(gw?.cost ?? 0)
+      }, 0)
       console.log(
         JSON.stringify({
           assistant: 'turn',
@@ -100,7 +105,7 @@ Rules:
           tools: event.steps.flatMap((s) => s.toolCalls.map((c) => c.toolName)),
           inputTokens: event.totalUsage.inputTokens,
           outputTokens: event.totalUsage.outputTokens,
-          costUsd: gw?.cost,
+          costUsd: Number(costUsd.toFixed(7)),
           ms: Date.now() - started,
         }),
       )
