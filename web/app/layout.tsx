@@ -1,4 +1,5 @@
 import './globals.css'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata = { title: 'Ridgeline' }
 
@@ -17,6 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main>{children}</main>
         <footer>served by: new storefront (Next.js on Vercel)</footer>
+        {/* Real-user Core Web Vitals (LCP, INP, CLS) for pages Next.js serves.
+            Legacy pages don't load it, so the comparison with legacy uses
+            lab measurements; see docs/measurements.md. */}
+        <SpeedInsights />
       </body>
     </html>
   )
